@@ -112,6 +112,19 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+@layer utilities {
+  .gradient {
+    @apply bg-gradient-to-br from-blue-500 to-green-500;
+  }
+  .gradient-title {
+    @apply font-extrabold tracking-tighter pr-2 pb-2;
+    background-image: linear-gradient(to bottom right, theme('colors.blue.500'), theme('colors.green.500'));
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+}
+
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -119,4 +132,15 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+
+
+.dotted-background {
+  background-color: #16223c;
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.28) 1px,
+    transparent 1px
+  );
+  background-size: 30px 30px;
 }
