@@ -1,5 +1,5 @@
 import React from 'react'
-import AddCarForm from '../_components/AddCarForm';
+import  { AddCarForm } from '../_components/AddCarForm';
 
 export const metadata = {
   title: "Add New Car | SmartWheels",
