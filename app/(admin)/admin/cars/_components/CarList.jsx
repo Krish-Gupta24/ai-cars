@@ -1,20 +1,21 @@
 "use client";
-import { deleteCar, getCars, updateCarStatus } from "@/actions/cars";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import {
+  Plus,
+  Search,
+  MoreHorizontal,
+  Star,
+  StarOff,
+  Trash2,
+  Eye,
+  Loader2,
+  Car as CarIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import useFetch from "@/hooks/use-fetch";
-import { CarIcon, Loader2, Plus, Search, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-
 import {
   Table,
   TableBody,
@@ -23,12 +24,38 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import useFetch from "@/hooks/use-fetch";
+import { getCars, deleteCar, updateCarStatus } from "@/actions/cars";
 import Image from "next/image";
-import { DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { formatCurrency } from "@/lib/helper";
 
-const CarList = () => {
+export const CarsList = () => {
+  const router = useRouter();
+
+  // State for search and dialogs
   const [search, setSearch] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [carToDelete, setCarToDelete] = useState(null);
 
+  // Custom hooks for API calls
   const {
     loading: loadingCars,
     fn: fetchCars,
@@ -37,56 +64,131 @@ const CarList = () => {
   } = useFetch(getCars);
 
   const {
-    loading: deletingCars,
+    loading: deletingCar,
     fn: deleteCarFn,
     data: deleteResult,
     error: deleteError,
   } = useFetch(deleteCar);
 
   const {
-    loading: updatingCars,
-    fn: updatingCarsFn,
+    loading: updatingCar,
+    fn: updateCarStatusFn,
     data: updateResult,
     error: updateError,
   } = useFetch(updateCarStatus);
 
+  // Initial fetch and refetch on search changes
   useEffect(() => {
     fetchCars(search);
   }, [search]);
 
-  const router = useRouter();
+  // Handle errors
+  useEffect(() => {
+    if (carsError) {
+      toast.error("Failed to load cars");
+    }
 
+    if (deleteError) {
+      toast.error("Failed to delete car");
+    }
+
+    if (updateError) {
+      toast.error("Failed to update car");
+    }
+  }, [carsError, deleteError, updateError]);
+
+  // Handle successful operations
+  useEffect(() => {
+    if (deleteResult?.success) {
+      toast.success("Car deleted successfully");
+      fetchCars(search);
+    }
+
+    if (updateResult?.success) {
+      toast.success("Car updated successfully");
+      fetchCars(search);
+    }
+  }, [deleteResult, updateResult, search]);
+
+  // Handle search submit
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     fetchCars(search);
   };
 
+  // Handle delete car
+  const handleDeleteCar = async () => {
+    if (!carToDelete) return;
+
+    await deleteCarFn(carToDelete.id);
+    setDeleteDialogOpen(false);
+    setCarToDelete(null);
+  };
+
+  // Handle toggle featured status
+  const handleToggleFeatured = async (car) => {
+    await updateCarStatusFn(car.id, { featured: !car.featured });
+  };
+
+  // Handle status change
+  const handleStatusUpdate = async (car, newStatus) => {
+    await updateCarStatusFn(car.id, { status: newStatus });
+  };
+
+  // Get status badge color
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "AVAILABLE":
+        return (
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+            Available
+          </Badge>
+        );
+      case "UNAVAILABLE":
+        return (
+          <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">
+            Unavailable
+          </Badge>
+        );
+      case "SOLD":
+        return (
+          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+            Sold
+          </Badge>
+        );
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
   return (
     <div className="space-y-4">
+      {/* Actions and Search */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <Button
-          onClick={() => {
-            router.push("/admin/cars/create");
-          }}
+          onClick={() => router.push("/admin/cars/create")}
           className="flex items-center"
         >
           <Plus className="h-4 w-4" />
           Add Car
         </Button>
+
+        {/* Simple Search Form */}
         <form onSubmit={handleSearchSubmit} className="flex w-full sm:w-auto">
           <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-500" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
             <Input
+              type="search"
+              placeholder="Search cars..."
               className="pl-9 w-full sm:w-60"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              type="search"
-              placeholder="Search Cars..."
             />
           </div>
         </form>
       </div>
 
+      {/* Cars Table */}
       <Card>
         <CardContent className="p-0">
           {loadingCars && !carsData ? (
@@ -233,8 +335,43 @@ const CarList = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {carToDelete?.make}{" "}
+              {carToDelete?.model} ({carToDelete?.year})? This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={deletingCar}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteCar}
+              disabled={deletingCar}
+            >
+              {deletingCar ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Car"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
-
-export default CarList;

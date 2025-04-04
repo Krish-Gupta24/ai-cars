@@ -47,7 +47,7 @@ export async function processCarImageWithAI(file) {
       6. Mileage
       7. Fuel type (your best guess)
       8. Transmission type (your best guess)
-      9. Price (your best guess)
+      9. Price (your best guess in Indian Rupees)
       9. Short Description as to be added to a car listing
 
       Format your response as a clean JSON object with these fields:
@@ -220,44 +220,37 @@ export async function addCar({ carData, images }) {
 
 export async function getCars(search = "") {
   try {
-    const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
+    // Build where conditions
+    let where = {};
 
-    if (!user) throw new Error("User not found");
-
-    let where = {}
-
+    // Add search filter
     if (search) {
       where.OR = [
         { make: { contains: search, mode: "insensitive" } },
         { model: { contains: search, mode: "insensitive" } },
-        { color: { contains: search, mode: "insensitive" } }
-      ]
+        { color: { contains: search, mode: "insensitive" } },
+      ];
     }
 
-    const cars = await db.cat.findMany({
+    // Execute main query
+    const cars = await db.car.findMany({
       where,
-      orderBy: { createdAt: "desc" }
-    })
+      orderBy: { createdAt: "desc" },
+    });
 
-    const serializedCars = cars.map(serializedCarsData)
+    const serializedCars = cars.map(serializedCarsData);
 
     return {
       success: true,
-      data:serializedCars
-    }
-
+      data: serializedCars,
+    };
   } catch (error) {
-    console.error("Error Fetching cars:", error)
+    console.error("Error fetching cars:", error);
     return {
       success: false,
-      error: error.message
-    }
+      error: error.message,
+    };
   }
-  
 }
 
 export async function deleteCar(id) {
