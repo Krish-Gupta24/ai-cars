@@ -9,9 +9,9 @@ import { cookies } from "next/headers";
 import { v4 as uuidv4 } from "uuid";
 
 async function fileToBase64(file) {
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    return buffer.toString("base64")
+    const bytes = await file.arrayBuffer() //convert image into array of number
+    const buffer = Buffer.from(bytes) // put them all together 
+    return buffer.toString("base64") // convert to string
 }
 
 export async function processCarImageWithAI(file) {
@@ -23,10 +23,9 @@ export async function processCarImageWithAI(file) {
 
     // Initialize Gemini API
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // tell which model u want to use
 
-    // Convert image file to base64
-    const base64Image = await fileToBase64(file);
+    const base64Image = await fileToBase64(file); // Convert image file to base64
 
     // Create image part for the model
     const imagePart = {
@@ -69,15 +68,13 @@ export async function processCarImageWithAI(file) {
       Only respond with the JSON object, nothing else.
     `;
 
-    
-    const result = await model.generateContent([imagePart, prompt]);
-    const response = await result.response;
-    const text = response.text();
-    const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
+    const result = await model.generateContent([imagePart, prompt]); // Sends both the image and the prompt to Gemini and waits for a response.
+    const response = await result.response;// get the response
+    const text = response.text();// convert response into plain text
+    const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim(); // clean response of gemini if any weird things comes
 
-    
     try {
-      const carDetails = JSON.parse(cleanedText);
+      const carDetails = JSON.parse(cleanedText); //convert to json file
 
       const requiredFields = [
         "make",
@@ -91,11 +88,11 @@ export async function processCarImageWithAI(file) {
         "transmission",
         "description",
         "confidence",
-      ];
+      ];// required feilds
 
       const missingFields = requiredFields.filter(
         (field) => !(field in carDetails)
-      );
+      );// check if any feild missing 
 
       if (missingFields.length > 0) {
         throw new Error(
