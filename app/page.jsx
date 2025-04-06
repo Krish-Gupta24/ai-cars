@@ -1,34 +1,44 @@
-import CarCard from "@/components/CarCard";
-import Homesearch from "@/components/Home-search";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { ChevronRight, Car, Calendar, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { bodyTypes, carMakes, faqItems, featuredCars } from "@/lib/data";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { SignedOut } from "@clerk/nextjs";
-import { Calendar, Car, ChevronRight, Shield } from "lucide-react";
-import Image from "next/image";
+import { getFeaturedCars } from "@/actions/home";
+import  CarCard  from "@/components/CarCard";
+import  HomeSearch   from "@/components/Home-search";
 import Link from "next/link";
+import Image from "next/image";
+import { bodyTypes, carMakes, faqItems } from "@/lib/data";
 
+export default async function Home() {
+  const featuredCars = await getFeaturedCars();
 
-export default function Home() {
   return (
     <div className="flex flex-col pt-20">
+      {/* Hero Section with Gradient Title */}
       <section className="relative py-16 md:py-28 dotted-background">
         <div className="max-w-4xl mx-auto text-center">
           <div className="mb-8">
             <h1 className="text-5xl md:text-8xl mb-4 gradient-title">
-              Find your Dream Car with SmartWheels AI
+              Find your Dream Car with Vehiql AI
             </h1>
             <p className="text-xl text-gray-500 mb-8 max-w-2xl mx-auto">
               Advanced AI Car Search and test drive from thousands of vehicles.
             </p>
           </div>
 
-          <Homesearch />
+          {/* Search Component (Client) */}
+          <HomeSearch />
         </div>
       </section>
 
+      {/* Featured Cars */}
       <section className="py-12">
-        <div className="container mx-auto px-12">
+        <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold">Featured Cars</h2>
             <Button variant="ghost" className="flex items-center" asChild>
@@ -38,15 +48,16 @@ export default function Home() {
             </Button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredCars.map((car) => {
-              return <CarCard key={car.key} car={car} />;
-            })}
+            {featuredCars.map((car) => (
+              <CarCard key={car.id} car={car} />
+            ))}
           </div>
         </div>
       </section>
 
+      {/* Browse by Make */}
       <section className="py-12 bg-gray-50">
-        <div className="container mx-auto px-12">
+        <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold">Browse by Make</h2>
             <Button variant="ghost" className="flex items-center" asChild>
@@ -79,8 +90,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Why Choose Us */}
       <section className="py-16">
-        <div className="container mx-auto px-12">
+        <div className="container mx-auto px-4">
           <h2 className="text-2xl font-bold text-center mb-12">
             Why Choose Our Platform
           </h2>
@@ -118,8 +130,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Browse by Body Type */}
       <section className="py-12 bg-gray-50">
-        <div className="container mx-auto px-12">
+        <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold">Browse by Body Type</h2>
             <Button variant="ghost" className="flex items-center" asChild>
@@ -156,8 +169,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* FAQ Section with Accordion */}
       <section className="py-12 bg-gray-50">
-        <div className="container mx-auto px-12">
+        <div className="container mx-auto px-4">
           <h2 className="text-2xl font-bold text-center mb-8">
             Frequently Asked Questions
           </h2>
@@ -172,8 +186,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* CTA Section */}
       <section className="py-16 dotted-background text-white">
-        <div className="container mx-auto px-12 text-center">
+        <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">
             Ready to Find Your Dream Car?
           </h2>

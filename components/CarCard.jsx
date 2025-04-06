@@ -1,16 +1,20 @@
-'use client'
-import React, { useState } from 'react'
-import { Card, CardContent } from './ui/card'
-import Image from 'next/image'
-import { CarIcon, Heart } from 'lucide-react'
-import { Button } from './ui/button'
-import { Badge } from './ui/badge'
+"use client";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent } from "./ui/card";
+import Image from "next/image";
+import { CarIcon, Heart } from "lucide-react";
+import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
 
 const CarCard = ({ car }) => {
-    const [saved, setSaved] = useState(car.wishlisted)
-    const handleToggleSaved = async (e) => {
-        
-    }
+  const router = useRouter();
+  const [saved, setSaved] = useState(car.wishlisted);
+
+  const handleToggleSaved = async (e) => {
+    // Handle wishlist logic here
+  };
+
   return (
     <Card className="overflow-hidden hover:shadow-lg transition group">
       <div className="relative h-48">
@@ -47,7 +51,7 @@ const CarCard = ({ car }) => {
             {car.make} {car.model}
           </h3>
           <span className="text-xl font-bold text-blue-600">
-            ${car.price.toLocaleString()}
+            ${car.price.toLocaleString("en-IN")}
           </span>
         </div>
 
@@ -84,6 +88,6 @@ const CarCard = ({ car }) => {
       </CardContent>
     </Card>
   );
-}
+};
 
-export default CarCard
+export default CarCard;
