@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
 import { TestDriveCard } from "@/components/test-drive-card";
 import useFetch from "@/hooks/use-fetch";
-import { cancelTestDrive } from "@/actions/test-drive";
+import { cancelTestDrive } from "@/actions/testdrive";
 
 export function ReservationsList({ initialData }) {
   const {
