@@ -12,6 +12,7 @@ import { toggleSavedCar } from "@/actions/car-listing";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import useFetch from "@/hooks/use-fetch";
+import { formatCurrency } from "@/lib/helper";
 
 const CarCard = ({ car }) => {
   const { isSignedIn } = useAuth();
@@ -101,7 +102,7 @@ const CarCard = ({ car }) => {
             {car.make} {car.model}
           </h3>
           <span className="text-xl font-bold text-blue-600">
-            ₹{car.price.toLocaleString()}
+            {formatCurrency(car.price)}
           </span>
         </div>
 
