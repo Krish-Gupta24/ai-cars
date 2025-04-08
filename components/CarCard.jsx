@@ -1,25 +1,68 @@
 "use client";
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Card, CardContent } from "./ui/card";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import Image from "next/image";
-import { CarIcon, Heart } from "lucide-react";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
+import { Heart, Car as CarIcon, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { toggleSavedCar } from "@/actions/car-listing";
+import { useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import useFetch from "@/hooks/use-fetch";
 
 const CarCard = ({ car }) => {
+  const { isSignedIn } = useAuth();
   const router = useRouter();
-  const [saved, setSaved] = useState(car.wishlisted);
+  const [isSaved, setIsSaved] = useState(car.wishlisted);
 
-  const handleToggleSaved = async (e) => {
-    // Handle wishlist logic here
+  // Use the useFetch hook
+  const {
+    loading: isToggling,
+    fn: toggleSavedCarFn,
+    data: toggleResult,
+    error: toggleError,
+  } = useFetch(toggleSavedCar);
+
+  // Handle toggle result with useEffect
+  useEffect(() => {
+    if (toggleResult?.success && toggleResult.saved !== isSaved) {
+      setIsSaved(toggleResult.saved);
+      toast.success(toggleResult.message);
+    }
+  }, [toggleResult, isSaved]);
+
+  // Handle errors with useEffect
+  useEffect(() => {
+    if (toggleError) {
+      toast.error("Failed to update favorites");
+    }
+  }, [toggleError]);
+
+  // Handle save/unsave car
+  const handleToggleSave = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isSignedIn) {
+      toast.error("Please sign in to save cars");
+      router.push("/sign-in");
+      return;
+    }
+
+    if (isToggling) return;
+
+    // Call the toggleSavedCar function using our useFetch hook
+    await toggleSavedCarFn(car.id);
   };
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition group">
       <div className="relative h-48">
         {car.images && car.images.length > 0 ? (
-          <div>
+          <div className="relative w-full h-full">
             <Image
               src={car.images[0]}
               alt={`${car.make} ${car.model}`}
@@ -32,26 +75,33 @@ const CarCard = ({ car }) => {
             <CarIcon className="h-12 w-12 text-gray-400" />
           </div>
         )}
+
         <Button
           variant="ghost"
           size="icon"
           className={`absolute top-2 right-2 bg-white/90 rounded-full p-1.5 ${
-            saved
+            isSaved
               ? "text-red-500 hover:text-red-600"
               : "text-gray-600 hover:text-gray-900"
           }`}
-          onClick={handleToggleSaved}
+          onClick={handleToggleSave}
+          disabled={isToggling}
         >
-          <Heart className={saved ? "fill-current" : ""} size={20} />
+          {isToggling ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Heart className={isSaved ? "fill-current" : ""} size={20} />
+          )}
         </Button>
       </div>
+
       <CardContent className="p-4">
         <div className="flex flex-col mb-2">
           <h3 className="text-lg font-bold line-clamp-1">
             {car.make} {car.model}
           </h3>
           <span className="text-xl font-bold text-blue-600">
-            ${car.price.toLocaleString("en-IN")}
+            ${car.price.toLocaleString()}
           </span>
         </div>
 
@@ -90,4 +140,4 @@ const CarCard = ({ car }) => {
   );
 };
 
-export default CarCard;
+export default CarCard
