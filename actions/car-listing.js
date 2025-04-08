@@ -265,7 +265,6 @@ export async function toggleSavedCar(carId) {
  */
 export async function getCarById(carId) {
   try {
-    // Get current user if authenticated
     const { userId } = await auth();
     let dbUser = null;
 
@@ -275,7 +274,6 @@ export async function getCarById(carId) {
       });
     }
 
-    // Get car details
     const car = await db.car.findUnique({
       where: { id: carId },
     });
@@ -289,6 +287,8 @@ export async function getCarById(carId) {
 
     // Check if car is wishlisted by user
     let isWishlisted = false;
+    let userTestDrive = null;
+
     if (dbUser) {
       const savedCar = await db.userSavedCar.findUnique({
         where: {
@@ -300,12 +300,7 @@ export async function getCarById(carId) {
       });
 
       isWishlisted = !!savedCar;
-    }
 
-    // Check if user has already booked a test drive for this car
-    let userTestDrive = null;
-
-    if (dbUser) {
       const existingTestDrive = await db.testDriveBooking.findFirst({
         where: {
           carId,
@@ -326,7 +321,6 @@ export async function getCarById(carId) {
       }
     }
 
-    // Get dealership info for test drive availability
     const dealership = await db.dealershipInfo.findFirst({
       include: {
         workingHours: true,
@@ -338,7 +332,7 @@ export async function getCarById(carId) {
       data: {
         ...serializedCarsData(car, isWishlisted),
         testDriveInfo: {
-          userTestDrive,
+          userTestDrive, // Will be null if not logged in
           dealership: dealership
             ? {
                 ...dealership,
@@ -355,9 +349,14 @@ export async function getCarById(carId) {
       },
     };
   } catch (error) {
-    throw new Error("Error fetching car details: " + error.message);
+    console.error("Error fetching car details:", error);
+    return {
+      success: false,
+      error: "Internal server error",
+    };
   }
 }
+
 
 
 /**
