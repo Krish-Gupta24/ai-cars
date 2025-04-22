@@ -21,7 +21,7 @@ Live Demo → [SmartWheels](https://smartwheels.vercel.app/)
 
 ## ⚙️ Tech Stack
 
-- **Next.js (TypeScript)** – Full-stack React framework  
+- **Next.js** – Full-stack React framework  
 - **Tailwind CSS + Shadcn UI** – For sleek and responsive design  
 - **Supabase** – Postgres-powered backend and storage  
 - **Clerk.dev** – Authentication and user management  
